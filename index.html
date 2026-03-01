@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fine dine | good food good mood</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#d4af37;
+  --black:#111;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{background:#000;color:#fff}
+header{
+  background:#111;
+  text-align:center;
+  padding:20px 10px;
+  border-bottom:2px solid var(--gold);
+}
+header h1{color:var(--gold);font-size:28px}
+header p{color:#ccc;font-size:14px}
+
+.filters{
+  display:flex;
+  gap:10px;
+  overflow:auto;
+  padding:15px;
+  justify-content:center;
+}
+.filters button{
+  background:var(--gold);
+  border:none;
+  padding:8px 15px;
+  border-radius:20px;
+  cursor:pointer;
+  font-weight:600;
+}
+.filters button.active{background:#fff;color:#000}
+
+.products{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:15px;
+  padding:15px;
+}
+.card{
+  background:#111;
+  border:1px solid var(--gold);
+  border-radius:10px;
+  padding:10px;
+  text-align:center;
+  transition:0.3s;
+}
+.card img{
+  width:100%;
+  height:120px;
+  object-fit:cover;
+  border-radius:8px;
+}
+.card h3{font-size:15px;margin:8px 0}
+.price{color:var(--gold);font-weight:700}
+.card button{
+  margin-top:8px;
+  background:var(--gold);
+  border:none;
+  padding:6px 10px;
+  border-radius:5px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.cart-icon{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:var(--gold);
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  cursor:pointer;
+  z-index:999;
+}
+.cart-count{
+  position:absolute;
+  top:-5px;
+  right:-5px;
+  background:red;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  font-size:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.cart-modal{
+  position:fixed;
+  top:0;
+  right:-100%;
+  width:100%;
+  max-width:400px;
+  height:100%;
+  background:#111;
+  transition:0.3s;
+  padding:20px;
+  overflow:auto;
+  z-index:1000;
+}
+.cart-modal.active{right:0}
+.cart-item{
+  border-bottom:1px solid #333;
+  padding:10px 0;
+}
+.qty-btn{
+  background:var(--gold);
+  border:none;
+  padding:3px 8px;
+  margin:0 5px;
+  cursor:pointer;
+}
+
+.checkout{
+  margin-top:15px;
+  background:var(--gold);
+  border:none;
+  width:100%;
+  padding:10px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+form{
+  margin-top:20px;
+}
+form input,form textarea{
+  width:100%;
+  margin-bottom:10px;
+  padding:8px;
+}
+form button{
+  background:var(--gold);
+  border:none;
+  padding:10px;
+  width:100%;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.whatsapp{
+  position:fixed;
+  left:20px;
+  bottom:20px;
+  background:#25D366;
+  color:#fff;
+  padding:12px 18px;
+  border-radius:30px;
+  text-decoration:none;
+  font-weight:600;
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Fine dine</h1>
+<p>good food good mood | Navi Mumbai</p>
+</header>
+
+<div class="filters">
+<button class="active" onclick="filterProducts('All')">All</button>
+<button onclick="filterProducts('Pizza')">Pizza</button>
+<button onclick="filterProducts('Burger')">Burger</button>
+<button onclick="filterProducts('Drinks')">Drinks</button>
+<button onclick="filterProducts('Dessert')">Dessert</button>
+</div>
+
+<div class="products" id="productList"></div>
+
+<div class="cart-icon" onclick="toggleCart()">
+🛒
+<div class="cart-count" id="cartCount">0</div>
+</div>
+
+<div class="cart-modal" id="cartModal">
+<h2>Your Cart</h2>
+<div id="cartItems"></div>
+<h3 id="grandTotal"></h3>
+<button class="checkout" onclick="showForm()">Place Order</button>
+
+<form id="orderForm" action="https://formspree.io/f/https://formspree.io/f/mkovarod" method="POST" style="display:none;">
+<input type="hidden" name="Order Summary" id="orderSummary">
+<input type="text" name="Customer Name" placeholder="Your Name" required>
+<input type="text" name="Phone" placeholder="Phone Number" required>
+<textarea name="Address" placeholder="Delivery Address" required></textarea>
+<textarea name="Instructions" placeholder="Special Instructions (Optional)"></textarea>
+<button type="submit">Submit Order</button>
+</form>
+
+</div>
+
+<a href="https://wa.me/+917388275761" class="whatsapp" target="_blank">Chat on WhatsApp</a>
+
+<script>
+const products=[
+{id:1,name:"Veg Burger",price:89,category:"Burger",img:"https://i.ibb.co/359B6g6K/0b5eb439a0fe2c71aa7b427d3402e1ea.jpg",desc:"Fresh veg loaded burger"},
+{id:2,name:"Chicken Burger",price:119,category:"Burger",img:"https://i.ibb.co/dTXXdLN/26e368041c4e38378e2639b6ea12b562.jpg",desc:"Crispy chicken burger"},
+{id:3,name:"Margherita Pizza",price:199,category:"Pizza",img:"https://i.ibb.co/rfxK27Wh/380850749a227ead09fc94cb2801bd28.jpg",desc:"Classic cheese pizza"},
+{id:4,name:"Farmhouse Pizza",price:249,category:"Pizza",img:"https://i.ibb.co/mrdjCFMs/9771d8ff54d37ab54e7a890215927ce1.jpg",desc:"Loaded veggie pizza"},
+{id:5,name:"Cold Coffee",price:99,category:"Drinks",img:"https://i.ibb.co/hxdwrtkM/bf85c81caac2baf6fd48b26e06a67a4b.jpg",desc:"Chilled creamy coffee"},
+{id:6,name:"Mojito",price:89,category:"Drinks",img:"https://i.ibb.co/4RpWRQBW/9b6d1615e5ee1a852e17566cfdb34130.jpg",desc:"Fresh mint mojito"},
+{id:7,name:"Chocolate Shake",price:109,category:"Drinks",img:"https://i.ibb.co/fGt5vL3w/a85392609f9ce282aaeac46586bb3273.jpg",desc:"Rich chocolate shake"},
+{id:8,name:"Chocolate Cake",price:149,category:"Dessert",img:"https://i.ibb.co/8LgSsMG5/dd29321db26bb2c1ad3884ec207194b3.jpg",desc:"Soft chocolate cake"},
+{id:9,name:"Brownie",price:129,category:"Dessert",img:"https://i.ibb.co/WvjtYSZg/b0ce3e85839901d25ec5247690692950.jpg",desc:"Fudgy chocolate brownie"}
+];
+
+let cart=JSON.parse(localStorage.getItem("cart"))||[];
+
+function displayProducts(list){
+const container=document.getElementById("productList");
+container.innerHTML="";
+list.forEach(p=>{
+container.innerHTML+=`
+<div class="card">
+<img src="${p.img}" loading="lazy" alt="${p.name}">
+<h3>${p.name}</h3>
+<p class="price">₹${p.price}</p>
+<button onclick="addToCart(${p.id})">Add to Cart</button>
+</div>`;
+});
+}
+displayProducts(products);
+
+function filterProducts(cat){
+document.querySelectorAll(".filters button").forEach(btn=>btn.classList.remove("active"));
+event.target.classList.add("active");
+if(cat==="All") displayProducts(products);
+else displayProducts(products.filter(p=>p.category===cat));
+}
+
+function addToCart(id){
+let item=cart.find(p=>p.id===id);
+if(item)item.qty++;
+else cart.push({...products.find(p=>p.id===id),qty:1});
+saveCart();
+}
+
+function saveCart(){
+localStorage.setItem("cart",JSON.stringify(cart));
+updateCart();
+}
+
+function updateCart(){
+document.getElementById("cartCount").innerText=cart.reduce((a,b)=>a+b.qty,0);
+const container=document.getElementById("cartItems");
+container.innerHTML="";
+let total=0;
+cart.forEach(p=>{
+total+=p.price*p.qty;
+container.innerHTML+=`
+<div class="cart-item">
+${p.name} - ₹${p.price} x ${p.qty}
+<button class="qty-btn" onclick="changeQty(${p.id},1)">+</button>
+<button class="qty-btn" onclick="changeQty(${p.id},-1)">-</button>
+<button onclick="removeItem(${p.id})">Remove</button>
+</div>`;
+});
+document.getElementById("grandTotal").innerText="Total: ₹"+total;
+}
+updateCart();
+
+function changeQty(id,change){
+let item=cart.find(p=>p.id===id);
+item.qty+=change;
+if(item.qty<=0) cart=cart.filter(p=>p.id!==id);
+saveCart();
+}
+function removeItem(id){
+cart=cart.filter(p=>p.id!==id);
+saveCart();
+}
+
+function toggleCart(){
+document.getElementById("cartModal").classList.toggle("active");
+}
+
+function showForm(){
+if(cart.length===0){alert("Cart is empty");return;}
+document.getElementById("orderForm").style.display="block";
+let summary="";
+let total=0;
+cart.forEach(p=>{
+summary+=`${p.name} - ${p.qty} x ₹${p.price}\n`;
+total+=p.qty*p.price;
+});
+summary+="\nTotal: ₹"+total;
+document.getElementById("orderSummary").value=summary;
+}
+
+document.getElementById("orderForm").addEventListener("submit",function(){
+localStorage.removeItem("cart");
+cart=[];
+alert("Order placed! Fine dine will contact you on WhatsApp to confirm.");
+});
+</script>
+</body>
+</html>
